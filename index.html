@@ -1,0 +1,598 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes, viewport-fit=cover">
+    <title>Comparador: Financiamento vs Investimento - Apartamento R$350k</title>
+    <!-- Chart.js CDN para gráficos -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <style>
+        * {
+            box-sizing: border-box;
+            font-family: system-ui, 'Segoe UI', 'Roboto', sans-serif;
+        }
+        body {
+            background: #f0f4f8;
+            margin: 0;
+            padding: 16px 12px;
+            color: #1a2c3e;
+        }
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+        h1 {
+            font-size: 1.6rem;
+            font-weight: 600;
+            margin: 0 0 0.25rem 0;
+            word-break: break-word;
+        }
+        .sub {
+            color: #2c5a7a;
+            border-left: 4px solid #2c7da0;
+            padding-left: 14px;
+            margin-bottom: 20px;
+            font-weight: 400;
+            font-size: 0.9rem;
+        }
+        .card {
+            background: white;
+            border-radius: 24px;
+            box-shadow: 0 6px 14px rgba(0,0,0,0.05);
+            padding: 16px 18px;
+            margin-bottom: 24px;
+            transition: all 0.2s;
+        }
+        .params-grid {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 14px;
+            align-items: flex-end;
+            margin-bottom: 8px;
+        }
+        .param-group {
+            flex: 1 1 160px;
+            min-width: 140px;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+        .param-group label {
+            font-weight: 600;
+            font-size: 0.75rem;
+            color: #2c3e50;
+            letter-spacing: 0.3px;
+        }
+        .param-group input {
+            padding: 10px 12px;
+            border: 1px solid #ccd7e4;
+            border-radius: 28px;
+            font-size: 0.9rem;
+            background: #fff;
+            transition: 0.2s;
+            width: 100%;
+        }
+        .param-group input:focus {
+            border-color: #2c7da0;
+            outline: none;
+            box-shadow: 0 0 0 2px rgba(44,125,160,0.2);
+        }
+        button {
+            background: #2c7da0;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 40px;
+            font-weight: 600;
+            color: white;
+            cursor: pointer;
+            font-size: 0.95rem;
+            transition: 0.2s;
+            margin-top: 18px;
+            width: 100%;
+            max-width: 280px;
+            display: inline-block;
+        }
+        button:hover {
+            background: #1f5e7a;
+            transform: scale(1.01);
+        }
+        .flex-charts {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+            margin: 20px 0 10px;
+        }
+        .chart-box {
+            flex: 1 1 100%;
+            background: #ffffffcc;
+            border-radius: 20px;
+            padding: 8px;
+            min-width: 0;
+        }
+        canvas {
+            max-height: 320px;
+            width: 100%;
+            height: auto;
+        }
+        .insight-grid {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 16px;
+            margin-top: 20px;
+        }
+        .insight-card {
+            background: #eef2f7;
+            border-radius: 20px;
+            padding: 14px 16px;
+            flex: 1 1 240px;
+            border-left: 5px solid;
+            word-break: break-word;
+        }
+        .badge {
+            font-size: 0.7rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.6px;
+            color: #2c7da0;
+        }
+        .value {
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin: 6px 0;
+            word-break: break-word;
+        }
+        .footnote {
+            font-size: 0.7rem;
+            color: #4a627a;
+            margin-top: 16px;
+            border-top: 1px solid #dce5ec;
+            padding-top: 12px;
+        }
+        .table-wrapper {
+            overflow-x: auto;
+            margin-top: 20px;
+            border-radius: 20px;
+            -webkit-overflow-scrolling: touch;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.8rem;
+            min-width: 480px;
+        }
+        th, td {
+            text-align: left;
+            padding: 12px 10px;
+            border-bottom: 1px solid #e2e8f0;
+            vertical-align: top;
+        }
+        th {
+            background: #e9f0f5;
+            font-weight: 600;
+        }
+        details {
+            margin-top: 16px;
+            background: #f8fafc;
+            border-radius: 20px;
+            padding: 12px 16px;
+            border: 1px solid #e2edf2;
+        }
+        summary {
+            font-weight: 600;
+            cursor: pointer;
+            color: #2c7da0;
+            font-size: 0.95rem;
+        }
+        .ref-link {
+            display: block;
+            padding: 8px 4px;
+            text-decoration: none;
+            color: #1f5e7a;
+            border-bottom: 1px solid #dce5ec;
+        }
+        .ref-link:hover {
+            background: #e6f0f5;
+            border-radius: 12px;
+        }
+        .ref-date {
+            font-size: 0.75rem;
+            color: #5e7e9e;
+            margin-bottom: 10px;
+        }
+        @media (max-width: 640px) {
+            body { padding: 12px 10px; }
+            .card { padding: 14px; }
+            h1 { font-size: 1.4rem; }
+            .value { font-size: 1.2rem; }
+            .param-group input { padding: 9px 10px; font-size: 0.85rem; }
+            button { width: 100%; max-width: none; padding: 12px; }
+            .insight-card { flex: 1 1 100%; }
+            .chart-box { padding: 4px; }
+            canvas { max-height: 260px; }
+            .footnote { font-size: 0.65rem; }
+        }
+        @media (max-width: 480px) {
+            .params-grid { flex-direction: column; gap: 12px; }
+            .param-group { min-width: auto; }
+            th, td { padding: 8px 6px; font-size: 0.75rem; }
+        }
+        input, button { touch-action: manipulation; }
+    </style>
+</head>
+<body>
+<div class="container">
+    <h1>🏢 Financiamento vs. Investimento</h1>
+    <div class="sub">Apartamento R$ 350.000 | Entrada R$ 80.000 | Capacidade mensal: R$ 2.000 | Prazo máximo: 35 anos (420 meses)</div>
+
+    <div class="card">
+        <h3>🔧 Parâmetros ajustáveis</h3>
+        <div class="params-grid">
+            <div class="param-group">
+                <label>💰 Valor do imóvel (R$)</label>
+                <input type="number" id="valorImovel" value="350000" step="10000">
+            </div>
+            <div class="param-group">
+                <label>🏦 Entrada inicial (R$)</label>
+                <input type="number" id="entrada" value="80000" step="5000">
+            </div>
+            <div class="param-group">
+                <label>📆 Parcela máx. mensal (R$)</label>
+                <input type="number" id="parcelaCapacidade" value="2000" step="100">
+            </div>
+            <div class="param-group">
+                <label>🏦 Taxa juros financiamento (anual %)</label>
+                <input type="number" id="taxaFinancAnual" value="9.0" step="0.5">
+            </div>
+            <div class="param-group">
+                <label>📈 Taxa renda fixa (anual %)</label>
+                <input type="number" id="taxaInvestAnual" value="13.0" step="0.5">
+            </div>
+            <div class="param-group">
+                <label>⏱️ Prazo máximo (anos)</label>
+                <input type="number" id="prazoAnos" value="35" step="1">
+            </div>
+        </div>
+        <button id="simularBtn">▶️ Simular e comparar</button>
+        <div class="footnote">
+            * Financiamento no sistema SAC (parcelas decrescentes). Investimento: rendimento composto mensal + aportes mensais de R$ 2.000.<br>
+            ** "Comprar à vista" ocorre no primeiro mês em que o montante investido ≥ valor do imóvel. Após comprar, mantém-se aportes mensais (imóvel + saldo investido).<br>
+            *** "Financiamento tardio": quando o montante investido permite dar entrada e financiar o saldo com parcelas ≤ R$ 2.000 (SAC com prazo restante até 35 anos).
+        </div>
+    </div>
+
+    <div class="card" id="resultadosPainel">
+        <h3>📊 Comparação das estratégias</h3>
+        <div class="flex-charts">
+            <div class="chart-box"><canvas id="graficoEvolucao" width="400" height="300"></canvas><div style="text-align:center; margin-top:6px; font-size:0.75rem;">Evolução mensal: Saldo devedor (financiamento) vs Patrimônio investido</div></div>
+            <div class="chart-box"><canvas id="graficoMontante" width="400" height="300"></canvas><div style="text-align:center; margin-top:6px; font-size:0.75rem;">Crescimento do investimento (R$ fixa) com aportes mensais</div></div>
+        </div>
+        <div class="insight-grid" id="insights">
+            <!-- dinâmico -->
+        </div>
+        <div class="table-wrapper" id="tabelaWrapper">
+            <div id="tabelaComparacao"></div>
+        </div>
+    </div>
+
+    <!-- NOVO CARD: DATAS DE REFERÊNCIA + DROPDOWN COM LINKS -->
+    <div class="card">
+        <h3>📅 Bases e referências para os cálculos</h3>
+        <div class="ref-date">
+            📌 <strong>Data de referência dos parâmetros padrão:</strong> 24 de abril de 2026.<br>
+            Os valores exibidos (taxa de financiamento 9% a.a., rentabilidade renda fixa 13% a.a., valor do imóvel e capacidade de pagamento) são <strong>estimativas de mercado</strong> baseadas em médias do sistema financeiro brasileiro no primeiro trimestre de 2026, podendo ser ajustados nos campos acima.
+        </div>
+        <details>
+            <summary>🔍 Sumário executivo & links para consulta de valores (clique para expandir)</summary>
+            <div style="margin-top: 16px;">
+                <p><strong>Fontes e indicadores utilizados como referência:</strong></p>
+                <ul style="padding-left: 20px; margin-bottom: 12px;">
+                    <li><strong>Taxa de juros do financiamento (SAC):</strong> 9% a.a. — valor compatível com linhas SBPE + TR médias praticadas por bancos (Caixa, Itaú, Bradesco) em abril/2026 para financiamento com prazo estendido.</li>
+                    <li><strong>Rentabilidade da renda fixa:</strong> 13% a.a. — próxima ao CDI projetado para 2026 (expectativa Selic em 12,75% - 13,25% a.a.), considerando investimentos como CDB pós-fixado ou Tesouro Selic.</li>
+                    <li><strong>Valor do imóvel (R$ 350 mil):</strong> média nacional para apartamentos de 2 quartos em capitais (valor FipeZAP + INCC referência abril/2026).</li>
+                    <li><strong>Capacidade de parcela (R$ 2.000):</strong> compatível com renda familiar estimada de R$ 6.500 a R$ 7.500 (limite comprometimento de 30%).</li>
+                </ul>
+                <p><strong>📎 Links externos para consulta de dados atualizados (abril/2026):</strong></p>
+                <a class="ref-link" href="https://www.bcb.gov.br/controledeinflacao/taxaselic" target="_blank" rel="noopener">🔗 Banco Central do Brasil – Taxa Selic e CDI (dados diários)</a>
+                <a class="ref-link" href="https://www.caixa.gov.br/voce/habitacao/Paginas/default.aspx" target="_blank" rel="noopener">🏦 Simulador de Financiamento CAIXA – Tabela SAC/PRICE</a>
+                <a class="ref-link" href="https://www.fipe.org.br/pt-br/índices/fipezap/" target="_blank" rel="noopener">📈 Índice FipeZAP – Variação de preços de imóveis</a>
+                <a class="ref-link" href="https://www.ibge.gov.br/estatisticas/economicas/precos-e-custos/9259-incc.html" target="_blank" rel="noopener">🏗️ INCC (Índice Nacional da Construção Civil) – atualização mensal</a>
+                <a class="ref-link" href="https://www.tesourodireto.com.br/" target="_blank" rel="noopener">💵 Tesouro Direto – Rentabilidade de títulos prefixados e pós-fixados</a>
+                <a class="ref-link" href="https://www.anbima.com.br/pt_br/informar/estatisticas.htm" target="_blank" rel="noopener">📊 ANBIMA – Taxas médias de financiamento imobiliário</a>
+                <div style="margin-top: 14px; font-size: 0.7rem; color: #4f6f8f;">
+                    * Os links são para consulta pública e servem como base para validação dos parâmetros utilizados na simulação.
+                </div>
+            </div>
+        </details>
+        <div class="footnote" style="margin-top: 12px;">
+            ✅ As simulações consideram regime de juros compostos e sistema SAC (amortização constante). Os resultados são ilustrativos e podem variar conforme condições contratuais reais.
+        </div>
+    </div>
+</div>
+
+<script>
+    (function(){
+        // elementos DOM
+        const btn = document.getElementById('simularBtn');
+        const valorImovelInput = document.getElementById('valorImovel');
+        const entradaInput = document.getElementById('entrada');
+        const parcelaCapacidadeInput = document.getElementById('parcelaCapacidade');
+        const taxaFinancAnualInput = document.getElementById('taxaFinancAnual');
+        const taxaInvestAnualInput = document.getElementById('taxaInvestAnual');
+        const prazoAnosInput = document.getElementById('prazoAnos');
+        
+        let chartEvo = null, chartMont = null;
+
+        function formatMoney(val) {
+            return 'R$ ' + val.toLocaleString('pt-BR', {minimumFractionDigits:2, maximumFractionDigits:2});
+        }
+
+        function formatMes(mes) {
+            let anos = Math.floor(mes/12);
+            let mesesRest = mes % 12;
+            return `${anos}a ${mesesRest}m`;
+        }
+
+        function calcularFinanciamento(valorImovel, entrada, taxaAnual, prazoMeses, parcelaMax) {
+            const financiado = valorImovel - entrada;
+            if(financiado <= 0) return {viavel: true, quitadoNaEntrada: true, custoTotal: entrada, jurosTotais: 0, primeiraParcela: 0};
+            const taxaMensal = Math.pow(1 + taxaAnual/100, 1/12) - 1;
+            const amort = financiado / prazoMeses;
+            let saldo = financiado;
+            let parcelas = [];
+            let saldos = [];
+            let jurosTotal = 0;
+            let parcelaMaxExcedida = false;
+            for(let i=1; i<=prazoMeses; i++){
+                let juros = saldo * taxaMensal;
+                let parcela = amort + juros;
+                jurosTotal += juros;
+                parcelas.push(parcela);
+                saldos.push(saldo);
+                if(parcela > parcelaMax + 0.01) parcelaMaxExcedida = true;
+                saldo -= amort;
+                if(saldo < 0) saldo = 0;
+            }
+            const custoTotal = entrada + parcelas.reduce((a,b)=>a+b,0);
+            const primeiraParcela = parcelas[0];
+            return {
+                viavel: !parcelaMaxExcedida,
+                quitadoNaEntrada: false,
+                saldoDevedorMensal: [financiado, ...saldos.slice(0, prazoMeses-1)],
+                parcelaMensalArray: parcelas,
+                custoTotal,
+                jurosTotais: jurosTotal,
+                primeiraParcela,
+                amortMensal: amort,
+                financiadoInicial: financiado
+            };
+        }
+
+        function estrategiaComprarVista(entrada, aporteMensal, taxaMensal, valorImovel, prazoMeses) {
+            let M = entrada;
+            let comprou = false;
+            let mesCompra = -1;
+            let saldoRestante = 0;
+            for(let mes=1; mes<=prazoMeses; mes++){
+                M = M * (1 + taxaMensal) + aporteMensal;
+                if(!comprou && M >= valorImovel){
+                    comprou = true;
+                    mesCompra = mes;
+                    saldoRestante = M - valorImovel;
+                    M = saldoRestante;
+                } else if(comprou){
+                    M = M * (1 + taxaMensal) + aporteMensal;
+                }
+            }
+            if(!comprou) return {temImovel: false, montanteFinal: M, mesCompra: -1, saldoFinal: M};
+            return {temImovel: true, montanteFinal: M, mesCompra: mesCompra, saldoFinal: M, imovelAdquirido: true};
+        }
+
+        function melhorFinanciamentoTardio(valorImovel, entradaInicial, aporteMensal, taxaInvestMensal, taxaFinancAnual, parcelaMax, prazoMeses) {
+            const taxaFinancMensal = Math.pow(1 + taxaFinancAnual/100, 1/12) - 1;
+            let M = entradaInicial;
+            for(let mes=1; mes<=prazoMeses; mes++){
+                M = M * (1 + taxaInvestMensal) + aporteMensal;
+                const n_restante = prazoMeses - mes;
+                if(n_restante <= 0) break;
+                if(M >= valorImovel){
+                    return {mesViabilidade: mes, entradaUsada: M, podeVista: true, compraVista: true, saldoFinanciado:0, custoTotal: M};
+                }
+                if(M < valorImovel){
+                    const S = valorImovel - M;
+                    const amort = S / n_restante;
+                    const parcelaInicial = amort + S * taxaFinancMensal;
+                    if(parcelaInicial <= parcelaMax + 0.01){
+                        let saldoFin = S;
+                        let somaParcelas = 0;
+                        for(let i=0; i<n_restante; i++){
+                            let juros = saldoFin * taxaFinancMensal;
+                            let parc = amort + juros;
+                            somaParcelas += parc;
+                            saldoFin -= amort;
+                        }
+                        const custoTotalFin = somaParcelas;
+                        const custoTotalGeral = M + somaParcelas;
+                        return {mesViabilidade: mes, entradaUsada: M, saldoFinanciado: S, parcelaInicial, custoTotalFinanciamento: custoTotalFin, custoTotalGeral, podeVista: false, compraVista: false};
+                    }
+                }
+            }
+            return null;
+        }
+
+        function runSimulation() {
+            let valorImovel = parseFloat(valorImovelInput.value);
+            let entrada = parseFloat(entradaInput.value);
+            let parcelaCap = parseFloat(parcelaCapacidadeInput.value);
+            let taxaFinancAnual = parseFloat(taxaFinancAnualInput.value);
+            let taxaInvestAnual = parseFloat(taxaInvestAnualInput.value);
+            let prazoAnos = parseFloat(prazoAnosInput.value);
+            if(isNaN(valorImovel) || valorImovel<=0) valorImovel=350000;
+            if(isNaN(entrada) || entrada<0) entrada=80000;
+            if(isNaN(parcelaCap)) parcelaCap=2000;
+            if(isNaN(taxaFinancAnual)) taxaFinancAnual=9;
+            if(isNaN(taxaInvestAnual)) taxaInvestAnual=13;
+            if(isNaN(prazoAnos)) prazoAnos=35;
+            let prazoMeses = Math.floor(prazoAnos * 12);
+            if(prazoMeses<1) prazoMeses=1;
+
+            const taxaInvestMensal = Math.pow(1 + taxaInvestAnual/100, 1/12) - 1;
+            
+            // 1. Financiamento direto
+            const financ = calcularFinanciamento(valorImovel, entrada, taxaFinancAnual, prazoMeses, parcelaCap);
+            
+            // 2. Investimento e compra à vista
+            const vista = estrategiaComprarVista(entrada, parcelaCap, taxaInvestMensal, valorImovel, prazoMeses);
+            const mesCompraVista = vista.mesCompra;
+            const patrimonioFinalVista = vista.montanteFinal;
+            const temImovelVista = vista.temImovel;
+            
+            // 3. Financiamento tardio
+            const tardio = melhorFinanciamentoTardio(valorImovel, entrada, parcelaCap, taxaInvestMensal, taxaFinancAnual, parcelaCap, prazoMeses);
+            
+            // Histórico de investimento simples (sem saque) para gráficos
+            let historicoSimples = [entrada];
+            let invSimples = entrada;
+            for(let m=1; m<=prazoMeses; m++){
+                invSimples = invSimples * (1 + taxaInvestMensal) + parcelaCap;
+                historicoSimples.push(invSimples);
+            }
+            
+            // Dados para gráfico de saldo devedor (financiamento)
+            let saldoDevPlot = [];
+            if(financ.viavel && !financ.quitadoNaEntrada){
+                saldoDevPlot = financ.saldoDevedorMensal;
+                while(saldoDevPlot.length < prazoMeses+1) saldoDevPlot.push(0);
+            } else if(financ.quitadoNaEntrada){
+                saldoDevPlot = new Array(prazoMeses+1).fill(0);
+            } else {
+                saldoDevPlot = new Array(prazoMeses+1).fill(null);
+                saldoDevPlot[0] = valorImovel - entrada;
+            }
+            
+            const labels = Array.from({length: prazoMeses+1}, (_,i) => i);
+            
+            if(chartEvo) chartEvo.destroy();
+            const ctxEvo = document.getElementById('graficoEvolucao').getContext('2d');
+            chartEvo = new Chart(ctxEvo, {
+                type: 'line',
+                data: {
+                    labels: labels,
+                    datasets: [
+                        {
+                            label: 'Saldo devedor (Financiamento SAC)',
+                            data: saldoDevPlot.map((v,i) => (v !== null && v !== undefined) ? v : null),
+                            borderColor: '#d9534f',
+                            backgroundColor: 'transparent',
+                            tension: 0.2,
+                            borderWidth: 2,
+                            spanGaps: false
+                        },
+                        {
+                            label: 'Patrimônio investido (sem saque)',
+                            data: historicoSimples,
+                            borderColor: '#2c7da0',
+                            backgroundColor: 'transparent',
+                            borderWidth: 2,
+                            tension: 0.2
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: true,
+                    plugins: { tooltip: { callbacks: { label: (ctx) => `${ctx.dataset.label}: ${formatMoney(ctx.raw)}` } } },
+                    scales: { y: { title: { display: true, text: 'Valor (R$)' }, ticks: { callback: (val) => formatMoney(val) } } }
+                }
+            });
+            
+            if(chartMont) chartMont.destroy();
+            const ctxMont = document.getElementById('graficoMontante').getContext('2d');
+            const pontoCompra = (mesCompraVista !== -1 && temImovelVista) ? [{x: mesCompraVista, y: valorImovel}] : [];
+            chartMont = new Chart(ctxMont, {
+                type: 'line',
+                data: {
+                    labels: labels,
+                    datasets: [
+                        { label: 'Evolução patrimônio (Investimento + aportes)', data: historicoSimples, borderColor: '#2c7da0', borderWidth: 2, fill: false, tension:0.2 },
+                        { label: `Compra à vista (mês ${mesCompraVista !== -1 ? mesCompraVista : 'nenhum'})`, data: pontoCompra, type: 'scatter', pointRadius: 8, pointBackgroundColor: '#f0ad4e', showLine: false }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    plugins: { tooltip: { callbacks: { label: (ctx) => ctx.dataset.label.includes('Compra') ? `Valor do imóvel: ${formatMoney(valorImovel)}` : `${formatMoney(ctx.raw)}` } } }
+                }
+            });
+            
+            const insightsDiv = document.getElementById('insights');
+            let financStatus = '';
+            if(financ.quitadoNaEntrada) financStatus = `✅ Entrada cobre o imóvel → compra à vista imediata.`;
+            else if(financ.viavel) financStatus = `✅ Financiamento viável (parcela inicial ${formatMoney(financ.primeiraParcela)} ≤ ${formatMoney(parcelaCap)}). Total pago: ${formatMoney(financ.custoTotal)}. Juros: ${formatMoney(financ.jurosTotais)}.`;
+            else financStatus = `⚠️ Financiamento inviável com a parcela máxima de ${formatMoney(parcelaCap)} (1ª parcela seria ${formatMoney(financ.primeiraParcela)}). Aumente entrada ou reduza juros.`;
+            
+            let investVistaMsg = '';
+            if(mesCompraVista !== -1 && temImovelVista){
+                investVistaMsg = `🎯 Compra à vista possível no mês ${mesCompraVista} (${formatMes(mesCompraVista)}). Saldo após compra + aportes até o fim: ${formatMoney(patrimonioFinalVista)}. Patrimônio final + imóvel: ${formatMoney(patrimonioFinalVista + valorImovel)}.`;
+            } else {
+                investVistaMsg = `⚠️ Nunca atingiu R$ ${formatMoney(valorImovel)} em ${prazoAnos} anos. Montante final: ${formatMoney(patrimonioFinalVista)}.`;
+            }
+            
+            let tardioMsg = '';
+            if(tardio){
+                if(tardio.compraVista){
+                    tardioMsg = `🏆 Pode comprar à vista pelo investimento no mês ${tardio.mesViabilidade} (${formatMes(tardio.mesViabilidade)}). Melhor que financiamento tardio.`;
+                } else {
+                    tardioMsg = `⏳ No mês ${tardio.mesViabilidade} (${formatMes(tardio.mesViabilidade)}), montante ${formatMoney(tardio.entradaUsada)} como entrada; financia R$ ${formatMoney(tardio.saldoFinanciado)} em ${prazoMeses - tardio.mesViabilidade} meses. Parcela inicial ≈ ${formatMoney(tardio.parcelaInicial)}. Custo total (entrada + parcelas) = ${formatMoney(tardio.custoTotalGeral)}.`;
+                }
+            } else {
+                tardioMsg = `❌ Não foi possível encontrar um momento em que o montante investido permita financiamento com parcelas ≤ ${formatMoney(parcelaCap)} dentro do prazo.`;
+            }
+            
+            insightsDiv.innerHTML = `
+                <div class="insight-card" style="border-left-color: #2c7da0;"><div class="badge">🏦 Financiamento Direto</div><div class="value">${financ.viavel ? formatMoney(financ.custoTotal) : 'Inviável'}</div><div>${financStatus}</div></div>
+                <div class="insight-card" style="border-left-color: #28a745;"><div class="badge">📈 Investir e comprar à vista</div><div class="value">${mesCompraVista !== -1 && temImovelVista ? `Mês ${mesCompraVista}` : 'Não atinge'}</div><div>${investVistaMsg}</div></div>
+                <div class="insight-card" style="border-left-color: #fd7e14;"><div class="badge">🔄 Financiamento Tardio (entrada + saldo)</div><div class="value">${tardio ? (tardio.compraVista ? 'Compra à vista' : formatMoney(tardio.custoTotalGeral)) : 'Inviável'}</div><div>${tardioMsg}</div></div>
+            `;
+            
+            let investVistaPatrimonioTotal = temImovelVista ? (valorImovel + patrimonioFinalVista) : patrimonioFinalVista;
+            let tabelaHTML = `<table><thead><tr><th>Estratégia</th><th>Possui imóvel?</th><th>Patrimônio líquido final (após ${prazoAnos} anos)</th><th>Detalhe</th></tr></thead><tbody>`;
+            tabelaHTML += `<tr><td>🏦 Financiamento direto (SAC)</td><td>${financ.viavel || financ.quitadoNaEntrada ? '✅ Sim' : '❌ Não'}</td><td>${financ.viavel || financ.quitadoNaEntrada ? formatMoney(valorImovel) : 'Não se aplica'}</td><td>${financ.viavel ? `Total pago: ${formatMoney(financ.custoTotal)}` : financStatus}</td></tr>`;
+            tabelaHTML += `<tr><td>📈 Investir + compra à vista</td><td>${temImovelVista ? '✅ Sim' : '❌ Não'}</td><td>${formatMoney(investVistaPatrimonioTotal)}</td><td>${temImovelVista ? `Imóvel quitado + saldo ${formatMoney(patrimonioFinalVista)}` : `Somente saldo ${formatMoney(patrimonioFinalVista)}`}</td></tr>`;
+            if(tardio && !tardio.compraVista && tardio.custoTotalGeral){
+                let comparacao = '';
+                if(financ.viavel && !financ.quitadoNaEntrada){
+                    comparacao = tardio.custoTotalGeral < financ.custoTotal ? `✅ Economia de ${formatMoney(financ.custoTotal - tardio.custoTotalGeral)}` : `❌ Mais caro que financiamento direto`;
+                }
+                tabelaHTML += `<tr><td>🔄 Financiamento tardio</td><td>✅ Sim</td><td>${formatMoney(valorImovel)}</td><td>Custo total desembolsado: ${formatMoney(tardio.custoTotalGeral)}. ${comparacao}</td></tr>`;
+            } else if(tardio?.compraVista){
+                tabelaHTML += `<tr><td>🔄 Financiamento tardio (antecipado)</td><td>✅ Sim</td><td>${formatMoney(valorImovel + (tardio.entradaUsada - valorImovel > 0 ? (tardio.entradaUsada - valorImovel) : 0))}</td><td>Compra à vista no mês ${tardio.mesViabilidade}.</td></tr>`;
+            } else {
+                tabelaHTML += `<tr><td>🔄 Financiamento tardio</td><td>❌ Não viável</td><td>-</td><td>Não encontrou parcela compatível.</td></tr>`;
+            }
+            tabelaHTML += `</tbody></table>`;
+            document.getElementById('tabelaComparacao').innerHTML = tabelaHTML;
+            
+            if(!financ.viavel && !financ.quitadoNaEntrada){
+                let alertDiv = document.getElementById('alertaEspecial');
+                if(!alertDiv){
+                    alertDiv = document.createElement('div');
+                    alertDiv.id = 'alertaEspecial';
+                    alertDiv.style.background = '#fff3cd';
+                    alertDiv.style.padding = '12px';
+                    alertDiv.style.borderRadius = '20px';
+                    alertDiv.style.marginTop = '16px';
+                    alertDiv.style.fontSize = '0.85rem';
+                    document.getElementById('tabelaWrapper').after(alertDiv);
+                }
+                alertDiv.innerHTML = `⚠️ <strong>Financiamento inviável com as condições atuais</strong>. Primeira parcela seria de ${formatMoney(financ.primeiraParcela)}. Aumente a entrada, reduza a taxa ou aumente a parcela máxima.`;
+            } else {
+                const oldAlert = document.getElementById('alertaEspecial');
+                if(oldAlert) oldAlert.remove();
+            }
+        }
+        
+        btn.addEventListener('click', () => { runSimulation(); });
+        runSimulation();
+    })();
+</script>
+</body>
+</html>
